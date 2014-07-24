@@ -1,36 +1,50 @@
 <?php
-//PHP and JSON to using the social count api.
+//PHP and JSON to using the social count api from http://tools.mercenie.com/social-share-count/api/?flag=15&format=json&url=
 function social_counter_processor(&$variables) {
-    
+    $variables['url'] = $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];//define url
     $variables['link'] = "http://tools.mercenie.com/social-share-count/api/?flag=15&format=json&url=".$variables['url'];
     $variables['contents'] = file_get_contents($variables['link']);
     $variables['jsons'] = json_decode($variables['contents']);
+  
   return $variables['jsons'];
 }
-//sum of social counter
+//Sum of social counter
 function social_counter_calculate(&$variables) {
     
-    $variables['url'] = $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];//define url
 	$variables['counts'] = social_counter_processor($variables); //extend variable from function social_counter_processor
-	$variables['fb_num'] = $variables['counts']->facebook->like_count;//fb like
-	$variables['fb_nums'] = $variables['counts']->facebook->share_count;//fb share
+	$variables['fblike_num'] = $variables['counts']->facebook->like_count;//fb like
+	$variables['fbshare_num'] = $variables['counts']->facebook->share_count;//fb share
 	$variables['fball_num'] = $variables['counts']->facebook->total_count;//all of facebook
 	$variables['twitter_num'] = $variables['counts']->twitter->count;//twitter
 	$variables['gplus_num'] = $variables['counts']->google->plusone; // gplus
 	$variables['total_num'] = $variables['fball_num'] + $variables['twitter_num'] + $variables['gplus_num']; //sum of all social media;
 }
 
+
+//The little function which takes the integer value and returns the short form like 1k, 1M and 1B. 
 function social_counter_checker(&$variables) {
     
-    $variables['counter_all'] = social_counter_calculate($variables); //extend variable from social_counter_calculate
-    if ($variables['total_num'] == '0'){ // check if variable = 0
-    	return $variables['total_num'] = '';
-    }
+    social_counter_calculate($variables); //extend variable from social_counter_calculate
+    	$variables['precision'] = 2; //The second parameter is precision. It limits the result to limited decimal points. The default decimal point is two
+   		 if ($variables['total_num'] >= 1000 && $variables['total_num'] < 1000000) {
+    	  		$variables['total_num'] = number_format($variables['total_num']/1000,$variables['precision']).'K';
+    	}
+    	else if ($variables['pretest'] >= 1000000 && $variables['total_num'] < 1000000000) {
+          		$variables['total_num'] = number_format($variables['total_num']/1000000,$variables['precision']).'M';	
+    	}
+    	else if ($variables['total_num'] >= 1000000000 ) {
+          		$variables['total_num'] = number_format($variables['total_num']/1000000000,$variables['precision']).'B';	
+    	}
+
+   		else {
+        		$variables['total_num'];
+    	}
+    return $variables['total_num']; 
 }
 
 //hook_preprocess_node() and set variable to node.tpl.php
 function social_counter_preprocess_node(&$variables) {
-   $variables['counter_all'] = social_counter_checker($variables); 	//extend variable from social_counter_checker 
+   social_counter_checker($variables); 	//extend variable from social_counter_checker 
 
    //Usage print $total_num; on your node.tpl.php 
 }
