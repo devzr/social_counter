@@ -25,8 +25,15 @@ function social_counter_calculate(&$variables) {
 function social_counter_checker(&$variables) {
     
     social_counter_calculate($variables); //extend variable from social_counter_calculate
+        if ($variables['total_num'] > 1){
+           $variables['word_suffix'] = '<div class="total-share">shares</div>';
+        } else{
+           $variables['word_suffix'] = '<div class="total-share">share</div>';
+        }
+    
     	$variables['precision'] = 2; //The second parameter is precision. It limits the result to limited decimal points. The default decimal point is two
-   		 if ($variables['total_num'] >= 1000 && $variables['total_num'] < 1000000) {
+        
+        if ($variables['total_num'] >= 1000 && $variables['total_num'] < 1000000) {
     	  		$variables['total_num'] = number_format($variables['total_num']/1000,$variables['precision']).'K';
     	}
     	else if ($variables['pretest'] >= 1000000 && $variables['total_num'] < 1000000000) {
@@ -34,10 +41,8 @@ function social_counter_checker(&$variables) {
     	}
     	else if ($variables['total_num'] >= 1000000000 ) {
           		$variables['total_num'] = number_format($variables['total_num']/1000000000,$variables['precision']).'B';	
-    	}
-
-   		else {
-        		$variables['total_num'];
+    	} else {
+               $variables['total_num'];
     	}
     return $variables['total_num']; 
 }
